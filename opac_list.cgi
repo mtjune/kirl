@@ -53,13 +53,13 @@ db.close
 
 # ここからメソッド定義
 
-def indbib(r0, r1, r2, r3, r4, r5)
-  print("<tr>")
-  printf("<td>%s</td>\n", CGI.escapeHTML(r0.to_s))
-  printf("<td>%s</td>\n", CGI.escapeHTML(r1.to_s))
-  printf("<td>%s</td>\n", CGI.escapeHTML(r2.to_s))
-  printf("<td>%s</td>\n", CGI.escapeHTML(r3.to_s))
-  printf("<td>%s</td>\n", CGI.escapeHTML(r4.to_s))
-  printf("<td>%s</td>\n", CGI.escapeHTML(r5.to_s))
-  print("</tr>")
-end
+# def indbib(r0, r1, r2, r3, r4, r5)
+#   print("<tr>")
+#   printf("<td>%s</td>\n", CGI.escapeHTML(r0.to_s))
+#   printf("<td>%s</td>\n", CGI.escapeHTML(r1.to_s))
+#   printf("<td>%s</td>\n", CGI.escapeHTML(r2.to_s))
+#   printf("<td>%s</td>\n", CGI.escapeHTML(r3.to_s))
+#   printf("<td>%s</td>\n", CGI.escapeHTML(r4.to_s))
+#   printf("<td>%s</td>\n", CGI.escapeHTML(r5.to_s))
+#   print("</tr>")
+# end
