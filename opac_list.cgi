@@ -19,7 +19,7 @@ print("<title>opac</title>\n")
 print("</head>\n")
 print("<body>\n")
 
-print("<table>\n")
+print("<table border="1">\n")
 print("<tr>\n")
 print("<th>NBC</th>\n")
 print("<th>ISBN</th>\n")
@@ -32,7 +32,15 @@ print("</tr>")
 db.transaction{
   word = "%" + c["searchword"] + "%"
   db.execute("select * from opac1 where title like ? or auther like ?;", word, word){ |row|
-    indbib(row[0], row[1], row[2], row[3], row[4], row[5])
+    # indbib(row[0], row[1], row[2], row[3], row[4], row[5])
+    print("<tr>")
+    printf("<td>%s</td>\n", CGI.escapeHTML(row[0].to_s))
+    printf("<td>%s</td>\n", CGI.escapeHTML(row[1].to_s))
+    printf("<td>%s</td>\n", CGI.escapeHTML(row[2].to_s))
+    printf("<td>%s</td>\n", CGI.escapeHTML(row[3].to_s))
+    printf("<td>%s</td>\n", CGI.escapeHTML(row[4].to_s))
+    printf("<td>%s</td>\n", CGI.escapeHTML(row[5].to_s))
+    print("</tr>")
   }
 }
 print("</table>\n")
