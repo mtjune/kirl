@@ -19,7 +19,7 @@ print("<title>opac</title>\n")
 print("</head>\n")
 print("<body>\n")
 
-print("<table border="1">\n")
+print("<table border='1'>\n")
 print("<tr>\n")
 print("<th>NBC</th>\n")
 print("<th>ISBN</th>\n")
