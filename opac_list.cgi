@@ -4,9 +4,25 @@
 require("sqlite3")
 require("cgi")
 
+def indirow(r0, r2, r3, r4, r5, ii)
+    if(ii % 2 == 0)
+      print("<tr bgcolor='#eeffee'>")
+    else
+      print("<tr bgcolor='#ccddcc'>")
+    end
+    printf("<td>%s</td>\n", CGI.escapeHTML(r0))
+    printf("<td>%s</td>\n", CGI.escapeHTML(r1))
+    printf("<td>%s</td>\n", CGI.escapeHTML(r2))
+    printf("<td>%s</td>\n", CGI.escapeHTML(r3))
+    printf("<td>%s</td>\n", CGI.escapeHTML(r4))
+    printf("<td>%s</td>\n", CGI.escapeHTML(r5))
+    print("</tr>")
+end
+
+
+
 c = CGI.new
 db = SQLite3::Database.new("opac.db")
-
 
 
 
@@ -30,10 +46,19 @@ print("<th>出版年月</th>\n")
 print("</tr>")
 
 db.transaction{
-  word = "%" + c["searchword"] + "%"
-  db.execute("select * from opac1 where title like ? or auther like ?;", word, word){ |row|
-    # indbib(row[0], row[1], row[2], row[3], row[4], row[5])
-    print("<tr>")
+  sqltext = "select * from opac1 where title like :title and auther like :author and pub like :publication ;"
+  s_title = "%" + c["title"] + "%"
+  s_author = "%" + c["author"] + "%"
+  s_publication = "%" + c["publication"] + "%"
+  i = 1
+  db.execute(sqltext, :title=>s_title, :author=>s_author, :publication=>s_publication){ |row|
+    i = i + 1
+
+    if(i % 2 == 0)
+      print("<tr bgcolor='#eeffee'>")
+    else
+      print("<tr bgcolor='#ccddcc'>")
+    end
     printf("<td>%s</td>\n", CGI.escapeHTML(row[0].to_s))
     printf("<td>%s</td>\n", CGI.escapeHTML(row[1].to_s))
     printf("<td>%s</td>\n", CGI.escapeHTML(row[2].to_s))
@@ -41,6 +66,7 @@ db.transaction{
     printf("<td>%s</td>\n", CGI.escapeHTML(row[4].to_s))
     printf("<td>%s</td>\n", CGI.escapeHTML(row[5].to_s))
     print("</tr>")
+
   }
 }
 print("</table>\n")
@@ -51,15 +77,4 @@ print("</html>\n")
 db.close
 
 
-# ここからメソッド定義
 
-# def indbib(r0, r1, r2, r3, r4, r5)
-#   print("<tr>")
-#   printf("<td>%s</td>\n", CGI.escapeHTML(r0.to_s))
-#   printf("<td>%s</td>\n", CGI.escapeHTML(r1.to_s))
-#   printf("<td>%s</td>\n", CGI.escapeHTML(r2.to_s))
-#   printf("<td>%s</td>\n", CGI.escapeHTML(r3.to_s))
-#   printf("<td>%s</td>\n", CGI.escapeHTML(r4.to_s))
-#   printf("<td>%s</td>\n", CGI.escapeHTML(r5.to_s))
-#   print("</tr>")
-# end
