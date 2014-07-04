@@ -2,18 +2,29 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="css.css" />
 <title>やまじゅんOPAC</title>
 </head>
 <body>
+	<div id="center">
 	<h1>やまじゅんOPAC</h1>
+	
 	<form method="POST" action="opac_list.cgi">
 	検索語を入力<br>
 	<table>
-	<tr><td>タイトル</td><td><input type="text" name="title" size="20"><td>
-	<tr><td>著者</td><td><input type="text" name="author" size="20"><td>
-	<tr><td>出版社</td><td><input type="text" name="publication" size="20"><td>
+	<tr><td>簡易検索</td><td><input type="text" name="any" size="20">
+		<select name="anysel">
+			<option value="and" selected>AND</option>
+			<option value="or">OR</option>
+		</select>
+	</td></tr>
+	<tr><td>タイトル</td><td><input type="text" name="title" size="20"></td></tr>
+	<tr><td>著者</td><td><input type="text" name="author" size="20"></td></tr>
+	<tr><td>出版社</td><td><input type="text" name="pub" size="20"></td></tr>
+	<tr><td>シリーズ</td><td><input type="text" name="series" size="20"></td></tr>
 	</table>
 	<input type="submit" value="検索"><input type="reset" value="空にする">
 	</form>
+</div>
 </body>
 </html>

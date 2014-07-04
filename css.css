@@ -1,0 +1,10 @@
+body{
+	background-image: url("ref/congruent_pentagon.png");
+	padding: 70px 70px 70px 70px;
+
+}
+
+#center{
+	width: 800px;
+	margin: 0 auto;
+}
