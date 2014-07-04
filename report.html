@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="css.css"/>
+	<title>知識情報演習OPACレポート</title>
+	<script type="text/javascript" src="sourcecode/scripts/shCore.js"></script>
+	<script type="text/javascript" src="sourcecode/scripts/shBrushRuby.js"></script>
+	<link type="text/css" rel="stylesheet" href="sourcecode/styles/shCoreDefault.css"/>
+	<script type="text/javascript">SyntaxHighlighter.all();</script>
+</head>
+
+<body>
+<h1>知識情報演習OPACレポート</h1>
+<table border="1" id="sign">
+<tr>
+<th>授業名</th><td>知識情報演習Ⅰ-1</td>
+</tr>
+<tr>
+<th>クラス</th><td>火曜クラス</td>
+</tr>
+<tr>
+<th>学籍番号</th><td>201413137</td>
+</tr>
+<tr>
+<th>学類</th><td>知識情報・図書館学類</td>
+</tr>
+<tr>
+<th>名前</th><td>山田純也</td>
+</tr>
+</table>
+
+<div>
+
+開発したOPACへのリンク → <a href="http://cgi.u.tsukuba.ac.jp/~s1413137/kirl3/index.html">やまじゅんOPAC</a>
+
+<h2>1. ソースコード解説</h2>
+
+順番にソースコードを解説していく。<br/>
+
+<pre class="brush: ruby;">
+#!/usr/bin/ruby
+# -*- coding: utf-8 -*-
+
+require(&quot;sqlite3&quot;)
+require(&quot;cgi&quot;)
+
+
+def indtd(str)
+  printf(&quot;&lt;td&gt;%s&lt;/td&gt;\n&quot;, CGI.escapeHTML(str))
+end
+
+def stitle(str)
+  return &quot;(title like &quot; + str + &quot; or titleheading like &quot; + str + &quot;) &quot;
+end
+
+def sauthor(str)
+  return &quot;(author like &quot; + str + &quot; or authorheading like &quot; + str + &quot;) &quot;
+end
+
+def spub(str)
+  return &quot;(pub like &quot; + str + &quot;) &quot;
+end
+
+def sseries(str)
+  return &quot;(series like &quot; + str + &quot;) &quot;
+end
+
+
+c = CGI.new
+db = SQLite3::Database.new(&quot;opac.db&quot;)
+</pre>
+
+まずここは各種宣言とメソッド定義を記述している。<br/>
+indtdは引数の文字列を&quot;&lt;td&gt;タグで囲って出力するメソッド。<br/>
+stitle、sauthor、spub、sseriesはそれぞれtitle、author、spub、seriesのフィールドで引数の文字列を検索語とする検索を行うSQL文のWHERE以降を返すメソッドである。また、titleとauthorフィールドではよみがなも共に検索したいため、それぞれtitleheadingとauthorheadingのフィールドも検索するようにしている。<br/>
+
+引き続きソースコードを記述する
+
+<pre class="brush: ruby;">
+# ここからSQL文構成
+sqltext = &quot;select * from opac &quot;
+s_any = c[&quot;any&quot;]
+if s_any != &quot;&quot;
+  sqltext += &quot;where &quot;
+  any_array = s_any.split(/[\s\p{blank}]+/)
+  last_index = any_array.length - 1
+  i = 0
+  any_array.each{ |sword|
+    sw = &quot;&#039;%&quot; + sword + &quot;%&#039;&quot;
+    sqltext += &quot;(&quot;
+    sqltext += &quot;nbc like &quot; + sw
+    sqltext += &quot; or &quot;
+    sqltext += &quot;isbn like &quot; + sw
+    sqltext += &quot; or &quot;
+    sqltext += &quot;title like &quot; + sw
+    sqltext += &quot; or &quot;
+    sqltext += &quot;author like &quot; + sw
+    sqltext += &quot; or &quot;
+    sqltext += &quot;ed like &quot; + sw
+    sqltext += &quot; or &quot;
+    sqltext += &quot;pub like &quot; + sw
+    sqltext += &quot; or &quot;
+    sqltext += &quot;date like &quot; + sw
+    sqltext += &quot; or &quot;
+    sqltext += &quot;phys like &quot; + sw
+    sqltext += &quot; or &quot;
+    sqltext += &quot;series like &quot; + sw
+    sqltext += &quot; or &quot;
+    sqltext += &quot;note like &quot; + sw
+    sqltext += &quot; or &quot;
+    sqltext += &quot;titleheading like &quot; + sw
+    sqltext += &quot; or &quot;
+    sqltext += &quot;authorheading like &quot; + sw
+    sqltext += &quot; or &quot;
+    sqltext += &quot;holdingsrecord like &quot; + sw
+    sqltext += &quot; or &quot;
+    sqltext += &quot;holdingloc like &quot; + sw
+    sqltext += &quot;) &quot;
+    if i &lt; last_index
+      if c[&quot;anysel&quot;] == &quot;and&quot;
+        sqltext += &quot;and &quot;
+      else
+        sqltext += &quot;or &quot;
+      end
+      i += 1
+    end
+  }
+else
+  fd = Hash.new
+  if c[&quot;title&quot;] != &quot;&quot;
+    fd[&quot;title&quot;] = &quot;&#039;%&quot; + c[&quot;title&quot;] + &quot;%&#039;&quot;
+  end
+  if c[&quot;author&quot;] != &quot;&quot;
+    fd[&quot;author&quot;] = &quot;&#039;%&quot; + c[&quot;author&quot;] + &quot;%&#039;&quot;
+  end
+  if c[&quot;pub&quot;] != &quot;&quot;
+    fd[&quot;pub&quot;] = &quot;&#039;%&quot; + c[&quot;pub&quot;] + &quot;%&#039;&quot;
+  end
+  if c[&quot;series&quot;] != &quot;&quot;
+    fd[&quot;series&quot;] = &quot;&#039;%&quot; + c[&quot;series&quot;] + &quot;%&#039;&quot;
+  end
+  imax = fd.length - 1
+  i = 0
+  if imax &gt;= 0
+    sqltext += &quot;where &quot;
+  end
+  fd.each{ |key, value|
+    if key == &quot;title&quot;
+      sqltext += stitle(value)
+    elsif key == &quot;author&quot;
+      sqltext += sauthor(value)
+    elsif key == &quot;pub&quot;
+      sqltext += spub(value)
+    elsif key == &quot;series&quot;
+      sqltext += sseries(value)
+    end
+      
+      if i &lt; imax
+        sqltext += &quot;and &quot;
+      end
+      i += 1
+  }
+end
+sqltext += &quot;;&quot;
+# ここまでSQL文構成
+</pre>
+
+ここでは実際に使用するSQL文を生成している。<br/>
+まず簡易検索のフィールドに文字が入っているかを判別し、入っていれば簡易検索を、入っていなければ各項目での検索を行うようにしている。<br/>
+簡易検索ではまず半角または全角で区切られて複数の検索語が入力された時、半角及び全角スペースをセパレータとして検索語を分割する。その後検索語一つ一つに対し全てのフィールドで部分一致検索を行うようにしている。またフィールドとフィールドの間はORで結んである。そして検索語が複数の場合はそれぞれ検索語一つ一つに対するすべてのフィールドを検索する条件式を、ANDまたはORでつないでいる。このANDまたはORは、簡易検索入力フォーム横のプルダウンメニューでユーザが指定できるようにしている。<br/>
+簡易検索入力フォームに何も入力されてない場合、フィールド毎に入力された検索語を検索する項目検索モードになる。ハッシュを用いて検索語を一度格納し、何か入力されたフィールドに対してのみAND検索を行うようにSQL文を生成している。
+
+
+<pre class="brush: ruby;">
+# ここからSQL文実行
+rows = Array.new
+db.transaction{
+  db.execute(sqltext){ |row|
+    rows.push(row)
+  }
+}
+# ここまでSQL文実行
+</pre>
+
+これはSQL文を実行する部分である。上で生成したSQL文を用いてその結果を配列の中に配列を入れた2次元配列で取得するだけである。
+
+
+<pre class="brush: ruby;">
+# ここから表示
+print(&quot;Content-Type: text/html; charset=utf-8\n&quot;)
+print(&quot;\n&quot;)
+print(&quot;&lt;!DOCTYPE html&gt;\n&quot;)
+print(&quot;&lt;html&gt;\n&quot;)
+print(&quot;&lt;head&gt;\n&quot;)
+print(&quot;&lt;link rel=&#039;stylesheet&#039; type=&#039;text/css&#039; href=&#039;css.css&#039; /&gt;&quot;)
+print(&quot;&lt;title&gt;opac&lt;/title&gt;\n&quot;)
+print(&quot;&lt;/head&gt;\n&quot;)
+print(&quot;&lt;body&gt;\n&quot;)
+print(&lt;&lt;&quot;EOS&quot;)
+&lt;div id=&#039;center&#039;&gt;
+&lt;h1&gt;やまじゅんOPAC&lt;/h1&gt;
+  &lt;form method=&#039;POST&#039; action=&#039;opac_list.cgi&#039;&gt;
+  検索語を入力&lt;br&gt;
+  &lt;table&gt;
+EOS
+printf(&quot;&lt;tr&gt;&lt;td&gt;簡易検索&lt;/td&gt;&lt;td&gt;&lt;input type=&#039;text&#039; name=&#039;any&#039; size=&#039;20&#039; value=&#039;%s&#039;&gt;&quot;, c[&quot;any&quot;])
+if c[&quot;anysel&quot;] == &quot;and&quot;
+  print(&quot;&lt;select name=&#039;anysel&#039;&gt;
+      &lt;option value=&#039;and&#039; selected&gt;AND&lt;/option&gt;
+      &lt;option value=&#039;or&#039;&gt;OR&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/td&gt;&lt;/tr&gt;&quot;)
+else
+  print(&quot;&lt;select name=&#039;anysel&#039;&gt;
+      &lt;option value=&#039;and&#039;&gt;AND&lt;/option&gt;
+      &lt;option value=&#039;or&#039; selected&gt;OR&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/td&gt;&lt;/tr&gt;&quot;)
+end
+printf(&quot;&lt;tr&gt;&lt;td&gt;タイトル&lt;/td&gt;&lt;td&gt;&lt;input type=&#039;text&#039; name=&#039;title&#039; size=&#039;20&#039; value=&#039;%s&#039;&gt;&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;著者&lt;/td&gt;&lt;td&gt;&lt;input type=&#039;text&#039; name=&#039;author&#039; size=&#039;20&#039; value=&#039;%s&#039;&gt;&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;出版社&lt;/td&gt;&lt;td&gt;&lt;input type=&#039;text&#039; name=&#039;pub&#039; size=&#039;20&#039; value=&#039;%s&#039;&gt;&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;シリーズ&lt;/td&gt;&lt;td&gt;&lt;input type=&#039;text&#039; name=&#039;series&#039; size=&#039;20&#039; value=&#039;%s&#039;&gt;&lt;/td&gt;&lt;/tr&gt;&quot;, c[&quot;title&quot;], c[&quot;author&quot;], c[&quot;pub&quot;], c[&quot;series&quot;])
+print(&lt;&lt;&quot;EOS&quot;)
+  &lt;/table&gt;
+  &lt;input type=&#039;submit&#039; value=&#039;検索&#039;&gt;&lt;input type=&#039;reset&#039; value=&#039;空にする&#039;&gt;
+  &lt;/form&gt;
+  &lt;/div&gt;
+  &lt;br&gt;
+EOS
+printf(&quot;&lt;div&gt;検索件数: %d件&lt;/div&gt;\n&quot;, rows.length)
+print(&quot;&lt;table border=&#039;1&#039;&gt;\n&quot;)
+print(&quot;&lt;tr&gt;\n&quot;)
+print(&quot;&lt;th&gt;No&lt;/th&gt;\n&quot;)
+print(&quot;&lt;th&gt;NBC&lt;/th&gt;\n&quot;)
+print(&quot;&lt;th&gt;ISBN&lt;/th&gt;\n&quot;)
+print(&quot;&lt;th&gt;タイトル&lt;/th&gt;\n&quot;)
+print(&quot;&lt;th&gt;著者&lt;/th&gt;\n&quot;)
+print(&quot;&lt;th&gt;出版社&lt;/th&gt;\n&quot;)
+print(&quot;&lt;th&gt;出版年月&lt;/th&gt;\n&quot;)
+print(&quot;&lt;/tr&gt;&quot;)
+i = 0
+rows.each{ |row|
+  i = i + 1
+  if(i % 2 == 0)
+    print(&quot;&lt;tr bgcolor=&#039;#ccddcc&#039;&gt;&quot;)
+  else
+    print(&quot;&lt;tr bgcolor=&#039;#eeffee&#039;&gt;&quot;)
+  end
+  indtd(i.to_s)
+  indtd(row[0].to_s)
+  indtd(row[1].to_s)
+  indtd(row[2].to_s)
+  indtd(row[3].to_s)
+  indtd(row[5].to_s)
+  indtd(row[6].to_s)
+  print(&quot;&lt;/tr&gt;&quot;)
+}
+print(&quot;&lt;/table&gt;\n&quot;)
+print(&quot;&lt;/body&gt;\n&quot;)
+print(&quot;&lt;/html&gt;\n&quot;)
+# ここまで表示
+db.close
+</pre>
+
+最後に、取得した配列を用いて結果を画面に出力する部分である。実際に結果の出力に関わっているのは55行〜70行のrows.each文の部分のみであり、それ以外はレイアウトを整えるか、またトップ画面で行う検索をここでもできるようにするための入力フォームの生成などを行っている。<br/>
+ここで生成される入力フォームはこのページが読み込まれるときに入力されていた検索語を値として再び入れることで、検索状況をわかりやすく表示している。<br/>
+これらの処理が終わった後、最後にデータベースとの接続を切断している。
+
+<h2>データベースのリレーションスキーマ</h2>
+
+
+<h2>OPACを構築する上で工夫した点</h2>
+箇条書きで記す。
+<ul>
+<li>すべてのフィールドを同じ条件で検索するANY検索において、複数の検索語がスペースで区切られて入力された場合、ANDでもORでも検索できるようにプルダウンメニューで指定できるようにした。</li>
+<li>色遣いを工夫し、行毎にセルの背景色を変えることで見やすくしている。</li>
+</ul>	
+
+
+<h2>実際に構築してみて得られた知見</h2>
+
+
+
+</div>
+
+</body>
+</html>
